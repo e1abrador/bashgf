@@ -7,7 +7,7 @@ How to install:
 ````bash
 cd /opt && git clone https://github.com/e1abrador/bashgf
 cd bashgf 
-cp bashgf $(echo $PATH | tr ':' ' ' | awk '{print $1}')
+chmod +x bashgf && cp bashgf $(echo $PATH | tr ':' ' ' | awk '{print $1}')
 ````
 
 # How to use it 
@@ -47,3 +47,5 @@ bashgf jsvars .
 
 # Thanks
 Thanks to Tomnomnom for the great tool idea.
+
+
