@@ -1,0 +1,192 @@
+#!/bin/bash
+
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+turquoiseColour="\e[0;36m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
+#gf in bash
+
+pathh=$2
+
+function xss(){
+	grep -iE "q=|s=|search=|lang=|keyword=|query=|page=|keywords=|year=|view=|email=|type=|name=|p=|callback=|jsonp=|api_key=|api=|password=|email=|emailto=|token=|username=|csrf_token=|unsubscribe_token=|id=|item=|page_id=|month=|immagine=|list_type=|url=|terms=|categoryid=|key=|l=|begindate=|enddate="
+}
+
+function ssti(){
+	grep -iE "template=|preview=|id=|view=|activity=|name=|content=|redirect="
+}
+
+function ssrf(){
+	grep -iE "access=|admin=|dbg=|debug=|edit=|grant=|test=|alter=|clone=|create=|delete=|disable=|enable=|exec=|execute=|load=|make=|modify=|rename=|reset=|shell=|toggle=|adm=|root=|cfg=|dest=|redirect=|uri=|path=|continue=|url=|window=|next=|data=|reference=|site=|html=|val=|validate=|domain=|callback=|return=|page=|feed=|host=|port=|to=|out=|view=|dir=|show=|navigation=|open=|file=|document=|folder=|pg=|php_path=|style=|doc=|img=|filename="
+}
+
+function sqli(){
+	grep -iE "id=|select=|report=|role=|update=|query=|user=|name=|sort=|where=|search=|params=|process=|row=|view=|table=|from=|sel=|results=|sleep=|fetch=|order=|keyword=|column=|field=|delete=|string=|number=|filter="
+}
+
+function open-redirect(){
+	grep -iE "image_url=|Open=|callback=|cgi-bin/redirect.cgi|cgi-bin/redirect.cgi?|checkout=|checkout_url=|continue=|data=|dest=|destination=|dir=|domain=|feed=|file=|file_name=|file_url=|folder=|folder_url=|forward=|from_url=|go=|goto=|host=|html=|image_url=|img_url=|load_file=|load_url=|login?to=|login_url=|logout=|navigation=|next=|next_page=|out=|page=|page_url=|path=|port=|redir=|redirect=|redirect_to=|redirect_uri=|redirect_url=|reference=|return=|returnTo=|return_path=|return_to=|return_url=|rt=|rurl=|show=|site=|target=|to=|uri=|url=|val=|validate=|view=|window="
+}
+
+function rce(){
+	grep -iE "daemon=|upload=|dir=|download=|log=|ip=|cli=|cmd=|exec=|command=|execute=|ping=|query=|jump=|code=|reg=|do=|func=|arg=|option=|load=|process=|step=|read=|function|req=|feature=|exe=|module=|payload=|run=|print="
+}
+
+function lfi(){
+	grep -iE "file=|document=|folder=|root=|path=|pg=|style=|pdf=|template=|php_path=|doc=|page=|name=|cat=|dir=|action=|board=|date=|detail=|download=|prefix=|include=|inc=|locate=|show=|site=|type=|view=|content=|layout=|mod=|conf=|url="
+}
+
+function jsvars(){
+	grep -HnriE "var [a-z0-9]+\s+=" $pathh
+}
+
+function urls(){
+	grep -HnriE "https?://[^\"\\'> ]+" $pathh
+}
+
+function upload-fields(){
+	grep -Hnri "<input\stype=*" $pathh
+}
+
+function sub-takeover(){
+	grep -HnriE "There is no app configured at that hostname|NoSuchBucket|No Such Account|You're Almost There|a GitHub Pages site here|There's nothing here|project not found|Your CNAME settings|InvalidBucketName|PermanentRedirect|The specified bucket does not exist|Repository not found|Sorry We Couldn't Find That Page|The feed has not been found.|The thing you were looking for is no longer here or never was|Please renew your subscription|There isn't a Github Pages site here.|We could not find what you're looking for.|No settings were found for this company:|No such app|is not a registered InCloud YouTrack|Unrecognized domain|project not found|This UserVoice subdomain is currently available\!|Do you want to register|Help Center Closed" $pathh
+}
+
+function servers(){
+	grep -HnriE "server: " $pathh
+}
+
+function keys(){
+	grep -HanriE "(aws_access|aws_secret|api[_-]?key|ListBucketResult|S3_ACCESS_KEY|Authorization:|RSA PRIVATE|Index of|aws_|secret|ssh-rsa AA)"
+}
+
+function aws-buckets(){
+	grep -hrioaE "[a-z0-9.-]+\\.s3\\.amazonaws\\.com|[a-z0-9.-]+\\.s3-[a-z0-9-]\\.amazonaws\\.com|[a-z0-9.-]+\\.s3-website[.-](eu|ap|us|ca|sa|cn)|//s3\\.amazonaws\\.com/[a-z0-9._-]+|//s3-[a-z0-9-]+\\.amazonaws\\.com/[a-z0-9._-]+" $pathh
+}
+
+function php-sources(){
+        grep -HnrE "\\$_(POST|GET|COOKIE|REQUEST|SERVER|FILES)|php://(input|stdin)" $pathh
+}
+
+function php-serialized(){
+        grep -HnrE "a:[0-9]+:{|O:[0-9]+:\"s:[0-9]+:\"" $pathh
+}
+
+function php-errors(){
+	grep -HnriE "php warning|php error|fatal error|uncaught exception|include_path|undefined index|undefined variable|\\?php|<\\?^x|stack trace\\:|expects parameter 0-9*|Debug Trace" $pathh
+}
+
+function php-curl(){
+	grep -HnrE "CURLOPT_(HTTPHEADER|HEADER|COOKIE|RANGE|REFERER|USERAGENT|PROXYHEADER)" $pathh
+}
+
+function json-sec(){
+	grep -HnriE "(\\\\?\"|&quot;|%22)[a-z0-9_-]*(api[_-]?key|S3|aws_|secret|passw|auth)[a-z0-9_-]*(\\\\?\"|&quot;|%22): ?(\\\\?\"|&quot;|%22)[^\"&]+(\\\\?\"|&quot;|%22)" $pathh
+}
+
+function http-auth(){
+	grep -hrioaE "[a-z0-9_/\\.:-]+@[a-z0-9-]+\\.[a-z0-9.-]+" $pathh
+}
+
+function software(){
+	grep -HnriE "django|laravel|symfony|graphite|grafana|X-Drupal-Cache|struts|code ?igniter|cake ?php|grails|elastic ?search|kibana|log ?stash|tomcat|jenkins|hudson|com.atlassian.jira|Apache Subversion|Chef Server|RabbitMQ Management|Mongo|Travis CI - Enterprise|BMC Remedy|artifactory" $pathh
+}
+
+function firebase(){
+	grep -Hnri "firebaseio.com" $pathh
+}
+
+function debug-page(){
+	grep -HnraiE "(Application-Trace|Routing Error|DEBUG\"? ?[=:] ?True|Caused by:|stack trace:|Microsoft .NET Framework|Traceback|[0-9]:in \`|#\!/us|WebApplicationException|java\\.lang\\.|phpinfo|swaggerUi|on line [0-9]|SQLSTATE)" $pathh
+}
+
+function cors(){
+	grep -HnriE "Access-Control-Allow" $pathh
+}
+
+function base64-important-value(){
+	grep -HnroE "([^A-Za-z0-9+/]|^)(eyJ|YTo|Tzo|PD[89]|aHR0cHM6L|aHR0cDo|rO0)[%a-zA-Z0-9+/]+={0,2}" $pathh
+}
+
+function aws-keys(){
+	grep -HanrE "([^A-Z0-9]|^)(AKIA|A3T|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{12,}" $pathh
+}
+
+function grep_stdin(){
+	while read lines
+	do
+  		echo $lines
+	done < "${1:-/dev/stdin}"
+}
+
+function helpPanel(){
+	echo -e "\tOptions:"
+	echo -e "\t\t${redColour}>${endColour} ${grayColour}Read from stdin file${endColour}"
+	echo -e "\t\t${purpleColour}cat file_with_urls | bashgf ${endColour}${yellowColour}<value>${endColour}"
+	echo -e "\t\t${blueColour}Values:${endColour} ${yellowColour}lfi rce open-redirect sqli ssrf ssti xss${endColour}"
+	echo -e "\t\t${redColour}>${endColour} ${grayColour}Grep recursively on directory files${endColour}"
+	echo -e "\t\t${purpleColour}bashgf ${endColour}${yellowColour}<value>${endColour} ${purpleColour} /path/to/directory${endColour}"
+	echo -e "\t\t${blueColour}Values:${endColour} ${yellowColour}jsvars urls upload-fields sub-takeover servers keys aws-buckets\n\t\tphp-sources php-serialized php-errors php-curl json-sec http-auth software\n\t\tfirebase debug-page cors base64-important-value aws-keys${endColour}"
+}
+
+if [ $1 == $(echo -e xss) 2>/dev/null ]; then
+	grep_stdin | xss 2>/dev/null
+elif [ $1 == $(echo -e ssti) 2>/dev/null ]; then
+	grep_stdin | ssti 2>/dev/null
+elif [ $1 == $(echo -e ssrf) 2>/dev/null ]; then
+        grep_stdin | ssrf 2>/dev/null
+elif [ $1 == $(echo -e sqli) 2>/dev/null ]; then
+        grep_stdin | sqli 2>/dev/null
+elif [ $1 == $(echo -e open-redirect) 2>/dev/null ]; then
+        grep_stdin | open-redirect 2>/dev/null
+elif [ $1 == $(echo -e rce) 2>/dev/null ]; then
+        grep_stdin | rce 2>/dev/null
+elif [ $1 == $(echo -e lfi) 2>/dev/null ]; then
+        grep_stdin | lfi 2>/dev/null
+elif [ $1 == $(echo -e jsvars) 2>/dev/null ]; then
+        jsvars 2>/dev/null
+elif [ $1 == $(echo -e urls) 2>/dev/null ]; then
+        urls 2>/dev/null
+elif [ $1 == $(echo -e upload-fields) 2>/dev/null ]; then
+        upload-fields 2>/dev/null
+elif [ $1 == $(echo -e sub-takeover) 2>/dev/null ]; then  
+        sub-takeover 2>/dev/null
+elif [ $1 == $(echo -e servers) 2>/dev/null ]; then
+        servers 2>/dev/null
+elif [ $1 == $(echo -e keys) 2>/dev/null ]; then
+        keys 2>/dev/null
+elif [ $1 == $(echo -e aws-buckets) 2>/dev/null ]; then
+        aws-buckets 2>/dev/null
+elif [ $1 == $(echo -e php-sources) 2>/dev/null ]; then
+        php-sources 2>/dev/null
+elif [ $1 == $(echo -e php-serialized) 2>/dev/null ]; then
+        php-serialized 2>/dev/null
+elif [ $1 == $(echo -e php-errors) 2>/dev/null ]; then
+        php-errors 2>/dev/null
+elif [ $1 == $(echo -e php-curl) 2>/dev/null ]; then
+        php-curl 2>/dev/null
+elif [ $1 == $(echo -e json-sec) 2>/dev/null ]; then
+        json-sec 2>/dev/null
+elif [ $1 == $(echo -e http-auth) 2>/dev/null ]; then
+        http-auth 2>/dev/null
+elif [ $1 == $(echo -e software) 2>/dev/null ]; then
+        software 2>/dev/null
+elif [ $1 == $(echo -e firebase) 2>/dev/null ]; then
+        firebase 2>/dev/null
+elif [ $1 == $(echo -e debug-page) 2>/dev/null ]; then
+        debug-page 2>/dev/null
+elif [ $1 == $(echo -e cors) 2>/dev/null ]; then
+        cors 2>/dev/null
+elif [ $1 == $(echo -e base64-important-value) 2>/dev/null ]; then
+        base64-important-value 2>/dev/null
+elif [ $1 == $(echo -e aws-keys) 2>/dev/null ]; then
+        aws-keys 2>/dev/null
+else
+	helpPanel
+fi
